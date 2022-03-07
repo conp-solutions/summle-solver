@@ -7,12 +7,19 @@ Take input from https://summle.net/
 
 Run like this:
 ```
-../cbmc/src/cbmc/cbmc --property main.assertion.1 --trace --trace-hex --object-bits 16 --unwind 10 --depth 2000 main.c |& tee log.log | grep "   =    "
+../cbmc/src/cbmc/cbmc --property main.assertion.1 --trace --trace-hex --object-bits 16 --unwind 10 --depth 2000 main.c
+|& tee log.log | grep "   =    "
 ```
 
 To specify the input during compile time, use (adapt limits accordingly):
 ```
-../cbmc/src/cbmc/cbmc --property main.assertion.1 --trace --trace-hex --object-bits 16 --unwind 10 --depth 2000 -DGOAL=490 -DINPUTS=2,4,5,8,8,25 -DSTEPS=5  main.c |& tee log.log | grep "   =    "
+../cbmc/src/cbmc/cbmc --property main.assertion.1 --trace --trace-hex --object-bits 16 --unwind 10 --depth 2000
+-DGOAL=490 -DINPUTS=2,4,5,8,8,25 -DSTEPS=5  main.c |& tee log.log | grep "   =    "
+```
+
+With type information:
+```
+../cbmc/src/cbmc/cbmc --property main.assertion.1 --trace --trace-hex --object-bits 16 --unwind 10 --depth 2000 -DTYPE="unsigned short" -DGOAL=54320 -DINPUTS=2,2,4,5,8,8,11,25 -DSTEPS=6  main.c |& tee log.log | grep "   =    "
 ```
 
 To solve more/new problems, add problems below (look for '  // FIXME: add more problems here!'
@@ -67,8 +74,12 @@ Problem 2022-03-06
 #include <stdlib.h>
 #include <string.h>
 
-
+#if defined(TYPE)
+typedef TYPE T;
+#else
 typedef unsigned short T; // we operate below 64K (for now)
+#endif
+
 
 T op_add(T a, T b)
 {
