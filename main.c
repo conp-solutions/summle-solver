@@ -10,6 +10,11 @@ Run like this:
 ../cbmc/src/cbmc/cbmc --property main.assertion.1 --trace --trace-hex --object-bits 16 --unwind 10 --depth 2000 main.c |& tee log.log | grep "   =    "
 ```
 
+To specify the input during compile time, use (adapt limits accordingly):
+```
+../cbmc/src/cbmc/cbmc --property main.assertion.1 --trace --trace-hex --object-bits 16 --unwind 10 --depth 2000 -DGOAL=490 -DINPUTS=2,4,5,8,8,25 -DSTEPS=5  main.c |& tee log.log | grep "   =    "
+```
+
 To solve more/new problems, add problems below (look for '  // FIXME: add more problems here!'
 
 
@@ -309,6 +314,13 @@ int main()
 
     // FIXME: add more problems here!
 
+#if defined(GOAL) && defined(INPUTS) && defined(STEPS)
+    T X = GOAL;
+    T inputs[] = { INPUTS };
+    T m = sizeof(inputs) / sizeof(T);
+    T maxsteps = STEPS;
+#else
+
 #if problem == 0
     T X = 323;
     T maxsteps = 5;
@@ -330,6 +342,7 @@ int main()
 #else
 #error no problem specified
 #endif
+#endif // GOALS && INPUTS
 
 
     // This is the solution to test problem 0
