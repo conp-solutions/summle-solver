@@ -133,6 +133,33 @@ T op_div(T a, T b)
 }
 
 
+void make_stdin_binary()
+{
+    static int stdin_is_binary = 0;
+    if (stdin_is_binary) return;
+
+    FILE *ptr = freopen(NULL, "rb", stdin);
+    if (!ptr) {
+        printf("failed to re-open stdin in binary mode, abort\n");
+        exit(1);
+    }
+
+    stdin_is_binary = 1;
+}
+
+void fill_from_stdin(T *buffer, T elements)
+{
+    make_stdin_binary();
+
+    int read_elements = fread(buffer, sizeof(T), elements, stdin);
+    printf("read %d elements from stdin\n", read_elements);
+
+    if (elements != read_elements) {
+        printf("Did not read sufficient elements, abort!\n");
+        exit(1);
+    }
+}
+
 int summle(T X, T *inputs, T m, T maxsteps, T *solution_positions_and_ops)
 {
     // actual numbers/values during the computation
@@ -153,6 +180,14 @@ int summle(T X, T *inputs, T m, T maxsteps, T *solution_positions_and_ops)
     T A_n_pos[maxsteps]; // initialize for CBMC of fuzzer
     T B_n_pos[maxsteps]; // initialize for CBMC of fuzzer
     T C_n_ops[maxsteps]; // select operation to compute, can be duplicated, TODO: could be restricted to 0-3, we only have 4 ops at the moment
+
+// if we do not use CBMC, read data from stdin
+#ifndef __CPROVER__
+    fill_from_stdin(A_n_pos, maxsteps);
+    fill_from_stdin(B_n_pos, maxsteps);
+    fill_from_stdin(C_n_ops, maxsteps);
+#endif
+
 
     // check a given solution
     if (solution_positions_and_ops) {
