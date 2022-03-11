@@ -19,8 +19,38 @@ To specify the input during compile time, use (adapt limits accordingly):
 
 With type information:
 ```
-../cbmc/src/cbmc/cbmc --property main.assertion.1 --trace --trace-hex --object-bits 16 --unwind 10 --depth 2000 -DTYPE="unsigned short" -DGOAL=54320 -DINPUTS=2,2,4,5,8,8,11,25 -DSTEPS=6  main.c |& tee log.log | grep "   =    "
+../cbmc/src/cbmc/cbmc --property main.assertion.1 \
+    --trace --trace-hex \
+    --object-bits 16 --unwind 10 --depth 2000 \
+    -DTYPE="unsigned short" -DGOAL=54320 -DINPUTS=2,2,4,5,8,8,11,25 -DSTEPS=6 \
+    main.c \
+        |& tee log.log | grep "   =    "
 ```
+
+To handle the program with a fuzzer instead, the below commands could be used:
+
+Prepare fuzzing directories with example input
+```
+  mkdir afl-in
+  mkdir afl-out
+  echo "abc" > afl-in/abc
+```
+
+Actually compile the binary for the fuzzer, and run the fuzzer
+```
+  ../AFL/afl-gcc main.c -o afl-main -DGOAL=1001 -DINPUTS=2,2,4,5,8,8,25 -DSTEPS=5
+  ../AFL/afl-fuzz -i afl-in -o afl-out ./afl-main
+```
+
+Use the output generated from the fuzzer
+```
+  for f in afl-out/crashes/* afl-out/queue/*
+  do
+    echo; echo; echo "$f"
+    cat "$f" | ./afl-main
+  done
+```
+
 
 To solve more/new problems, add problems below (look for '  // FIXME: add more problems here!'
 
